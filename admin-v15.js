@@ -193,7 +193,7 @@ function renderSubs() {
 }
 
 function syncDraftFromInputs() {
-  config.teamName = teamNameInput.value.trim() || "5–2 Volleyball Rotation Guide";
+  config.teamName = teamNameInput.value.trim() || "5-1 Rotation";
 
   document.querySelectorAll(".player-name-input").forEach((input) => {
     const index = Number(input.dataset.index);

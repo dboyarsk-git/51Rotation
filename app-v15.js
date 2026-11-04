@@ -36,9 +36,9 @@ const MODE_COPY = {
   },
   receive: {
     title: "Serve Receive",
-    hint: "Hide the setter, pass cleanly, then release to base.",
+    hint: "Follow the 5-1 Option 1 receive diagram; the setter releases to set.",
     heading: "Serve Receive",
-    text: "The all-around setter stays available at the setting target. The Right Side helps pass when back row. These initial shapes are drafts for coach review, rotation by rotation.",
+    text: "Use the six Option 1 serve-receive patterns from the coach’s diagram. The setter stays out of passing and releases to the target after contact; the Right Side plays back-right defense when back row, not setter.",
     steps: ["Stay legal", "Hide the setter", "Build the passing lanes", "Pass to target"]
   },
   set: {
@@ -52,8 +52,8 @@ const MODE_COPY = {
     title: "Base",
     hint: "Front row on the net; back row in defensive base.",
     heading: "Defensive Base",
-    text: "Front-row attackers stay tight to the net while the setter remains available to set. The back-row outside starts at the left sideline / 10-ft-line intersection, the setter starts at the matching right-side intersection, and the middle-back defender stays deep in the middle.",
-    steps: ["Hitters at net", "Left defender at left base", "Setter at right base", "Middle back stays deep"]
+    text: "In Rotations 4–6, the front-row setter blocks at RIGHT FRONT in base, then moves back to the setting target when offense begins. In Rotations 1–3, the front-row RS blocks right. A back-row RS stays back-right.",
+    steps: ["Setter blocks right when front", "RS defends back right when back", "Middle closes block", "Release to attack"]
   },
   attack_oh: {
     title: "Outside Hit",
@@ -91,8 +91,8 @@ const ROLE_COPY = {
     body: "This setter runs the offense in all six rotations, including when she is front row. She releases to the setting target after the serve or pass."
   },
   RS: {
-    title: "Right Side / Back-Row Passer",
-    body: "The Right Side attacks and blocks while front row. When she rotates to the back row, she becomes a passer and defender in the hitter's usual lane rather than setting."
+    title: "Right Side / Back-Right Defender",
+    body: "The Right Side attacks and blocks while front row. When she rotates to the back row, she stays back-right on defense and never sets. In serve receive, she is tucked out of the primary passing lanes."
   },
   OH: {
     title: "Outside Hitter",
@@ -112,7 +112,7 @@ const ROLE_COPY = {
   },
   ALL: {
     title: "Whole Team",
-    body: "Work through each of the six rotations. These court shapes are a starter draft, not yet coach-verified. Serve → Serve Receive → Base → defense against Outside / Middle / Right Side → Free Ball. The attack tabs describe YOUR defensive movement when that opponent hitter attacks."
+    body: "Work through all six 5-1 rotations based on the coach reference. Check serve-receive overlaps on court before using them in competition. Serve → Serve Receive → Base → defense against Outside / Middle / Right Side → Free Ball. The attack tabs describe YOUR defensive movement when that opponent hitter attacks."
   }
 };
 
@@ -195,7 +195,7 @@ function getActivePlayerInstruction(entry) {
 
   if (currentMode === "receive") {
     if (role === "S") return `${base} Stay clear of the passing lane. Once the pass is controlled, release to the target between the middle and right side.`;
-    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are a BACK-ROW PASSER/DEFENDER this rotation. Take the hitter's passing lane and help receive.`;
+    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are BACK RIGHT this rotation. Stay tucked behind the passers, do not take a primary passing lane, and do not set.`;
     if (role === "OH") return `${base} Join the serve-receive shape, call seams, and pass toward the target.`;
     if (role === "MB" && isFrontRow(zone)) return `${base} Hold the corrected front-row overlap, then transition as soon as the pass is made.`;
     if (role === "RS" && isFrontRow(zone)) return `${base} Hold the corrected serve-receive relationship and transition after the pass.`;
@@ -204,25 +204,25 @@ function getActivePlayerInstruction(entry) {
 
   if (currentMode === "set") {
     if (role === "S") return `${base} Release to the target between the middle and right side, square up, and set.`;
-    if (isFrontRow(zone)) return `${base} Transition off the net so you are available to attack.`;
+    if (isFrontRow(zone)) return `${base} Transition off the net for an approach, except the front-row setter who runs the offense.`;
     return `${base} Balance behind the offense, then reset to defensive base.`;
   }
 
   if (currentMode === "base") {
-    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are a BACK-ROW DEFENDER, taking the hitter's usual defensive area.`;
+    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are a BACK-ROW DEFENDER in the back-right area; do not set.`;
     if (isFrontRow(zone) && role === "OH") return `${base} Start on the LEFT pin at the net and read the opponent.`;
     if (isFrontRow(zone) && role === "MB") return `${base} Start CENTERED on the net and read the opponent setter.`;
-    if (isFrontRow(zone) && role === "RS") return `${base} Start on the RIGHT pin at the net and read the opponent.`;
-    if (role === "S") return `${base} Start at the RIGHT sideline / 10-ft-line base.`;
+    if (isFrontRow(zone) && (role === "RS" || role === "S")) return `${base} Block at the RIGHT pin in base, then transition back to the setting target to set.`;
+    if (role === "S") return `${base} When front row, BLOCK at RIGHT FRONT in base, then return to the setting target on offense; when back row, defend from right back.`;
     if (role === "OH") return `${base} Start at the LEFT sideline / 10-ft-line base.`;
     return `${base} Start deep middle and read the hitter.`;
   }
 
   if (currentMode === "attack_oh") {
-    if (isFrontRow(zone) && role === "RS") return `${base} The opponent outside is hitting: take the RIGHT pin block.`;
+    if (isFrontRow(zone) && (role === "RS" || role === "S")) return `${base} The opponent outside is hitting: take the RIGHT pin block.`;
     if (isFrontRow(zone) && role === "MB") return `${base} Close RIGHT to the pin blocker and form the block.`;
     if (isFrontRow(zone) && role === "OH") return `${base} Release off the net into short / tip defense.`;
-    if (role === "S") return `${base} Shift deeper on the right behind the block.`;
+    if (role === "S") return `${base} Defend back-right, then release to set on offense.`;
     if (role === "OH") return `${base} Shift into left-middle defensive coverage.`;
     return `${base} Get deep cross-court behind the block.`;
   }
@@ -230,7 +230,7 @@ function getActivePlayerInstruction(entry) {
   if (currentMode === "attack_mb") {
     if (isFrontRow(zone) && role === "MB") return `${base} Stay centered and block the opponent middle.`;
     if (isFrontRow(zone)) return `${base} Release off the net into short defense.`;
-    if (role === "S") return `${base} Hold the right-side seam.`;
+    if (role === "S") return `${base} Hold back-right when in the back row; block right front if front row.`;
     if (role === "OH") return `${base} Hold the left-side seam.`;
     return `${base} Protect deep middle.`;
   }
@@ -238,8 +238,8 @@ function getActivePlayerInstruction(entry) {
   if (currentMode === "attack_rs") {
     if (isFrontRow(zone) && role === "OH") return `${base} The opponent right side is hitting: take the LEFT pin block.`;
     if (isFrontRow(zone) && role === "MB") return `${base} Close LEFT to the pin blocker and form the block.`;
-    if (isFrontRow(zone) && role === "RS") return `${base} Release off the net into short / tip defense.`;
-    if (role === "S") return `${base} Shift into right-middle defensive coverage.`;
+    if (isFrontRow(zone) && (role === "RS" || role === "S")) return `${base} Release off the net into short / tip defense.`;
+    if (role === "S") return `${base} Defend right-back if back row; block/cover right front if front row.`;
     if (role === "OH") return `${base} Hold the left-side defensive lane.`;
     return `${base} Get deep cross-court behind the block.`;
   }
@@ -276,13 +276,13 @@ function renderPlayers() {
     if (currentMode === "serve" && zone === 1) circle.classList.add("server");
     if (isSub) circle.classList.add("subbed-in");
     if (isLibero) circle.classList.add("libero-on-court");
-    if (currentMode === "receive" && getFormationRole(entry) === "S" && !isFrontRow(entry.zone)) circle.classList.add("hidden-setter");
+    if (currentMode === "receive" && getFormationRole(entry) === "S") circle.classList.add("hidden-setter");
 
     const systemRole = getSystemRole(player, zone);
     circle.innerHTML = `
       <span class="player-name">${escapeHtml(player.name)}</span>
       <span class="player-role">${escapeHtml(player.role)}</span>
-      ${player.role === "RS" ? `<span class="system-role">${isFrontRow(zone) ? "Front-row hitter" : "Back-row passer"}</span>` : ""}
+      ${player.role === "RS" ? `<span class="system-role">${isFrontRow(zone) ? "Front-row hitter" : "Back-right defender"}</span>` : ""}
       <span class="zone-badge">${zone}</span>
       ${isLibero ? '<span class="lib-badge">LIB</span>' : isSub ? '<span class="sub-badge">SUB</span>' : ""}
     `;
@@ -360,8 +360,8 @@ function renderRoleCopy() {
 
 function render() {
   config = loadConfig();
-  teamTitle.textContent = config.teamName || "5–2 Volleyball Rotation Guide";
-  document.title = `${config.teamName || "5–2 Volleyball"} — Rotation ${currentRotation}`;
+  teamTitle.textContent = config.teamName || "5-1 Rotation";
+  document.title = `${config.teamName || "5-1 Rotation"} — Rotation ${currentRotation}`;
   buildControls();
   if (selectedPlayerId && [...playerFocus.options].some((option) => option.value === selectedPlayerId)) playerFocus.value = selectedPlayerId;
   renderLesson();
@@ -390,7 +390,7 @@ function applyModeToExistingPlayers(mode) {
     circle.style.left = `${coords.x}%`;
     circle.style.top = `${coords.y}%`;
     circle.classList.toggle("server", currentMode === "serve" && entry.zone === 1);
-    circle.classList.toggle("hidden-setter", currentMode === "receive" && getFormationRole(entry) === "S" && !isFrontRow(entry.zone));
+    circle.classList.toggle("hidden-setter", currentMode === "receive" && getFormationRole(entry) === "S");
   });
   [...modeButtons.querySelectorAll("button")].forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === currentMode);

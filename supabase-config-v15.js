@@ -4,5 +4,5 @@
 window.VBALL_SUPABASE = {
   url: "https://uygotksjyqusbdoepzft.supabase.co",
   publishableKey: "sb_publishable_7946Ght6J3pY2k9UcNbkhA_dDTwn89q",
-  teamSlug: "qg-volleyball-52"
+  teamSlug: "volleyball-51"
 };

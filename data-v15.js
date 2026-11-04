@@ -1,11 +1,11 @@
-const STORAGE_KEY = "volleyball52Config_v1";
-const LEGACY_STORAGE_KEY = "volleyball52LegacyDisabled_v1";
-const ADMIN_SESSION_KEY = "volleyball52AdminUnlocked";
-const ADMIN_PIN_SESSION_KEY = "volleyball52AdminCloudPin";
+const STORAGE_KEY = "volleyball51Config_v2";
+const LEGACY_STORAGE_KEY = "volleyball51LegacyDisabled_v2";
+const ADMIN_SESSION_KEY = "volleyball51AdminUnlocked";
+const ADMIN_PIN_SESSION_KEY = "volleyball51AdminCloudPin";
 
 const DEFAULT_CONFIG = {
-  teamName: "Queens Grant 5–2 Rotation Guide",
-  adminPin: "5252",
+  teamName: "5-1 Rotation",
+  adminPin: "5151",
   players: [
     { id: "p1", name: "Setter", role: "S" },
     { id: "p2", name: "Outside 1", role: "OH" },
@@ -252,10 +252,8 @@ function rowMatchesTrigger(zone, trigger) {
 }
 
 function getSystemRole(player, zone) {
-  // This team keeps one designated all-around setter across all six rotations.
-  // The Right Side hits in the front row and takes an outside-type passing /
-  // defensive assignment when in the back row.
-  if (player.role === "RS" && !isFrontRow(zone)) return "OH";
+  // 5-1: one designated setter in all six rotations.
+  // The opposite/right side never becomes a setter in the back row.
   return player.role;
 }
 
@@ -306,105 +304,99 @@ function getServeCoords(zone, rotationNumber = 1) {
   return compactServe[zone] || ROTATION_COORDS[zone];
 }
 
-// STARTER SHAPES ONLY: coach will approve each rotation before they are final.
-// Front-row players stay toward the net; back-row setter hides near target.
-// Right Side in back row takes a passing lane rather than acting as a setter.
-const SERVE_RECEIVE_ZONE_COORDS = {};
-
+// Serve-receive patterns from the coach's six Option 1 diagrams.
+// Coordinates are schematic percentages (net at top). Players are indexed
+// by their ORIGINAL rotational slot, so substitutions inherit the same spot.
+// In the diagram some arrows illustrate releases after serve contact. Coaches
+// must check overlap legality in the actual starting positions for each serve.
+const RECEIVE_BY_ROTATION = {
+  1: {p1:[90,22],p2:[81,14],p3:[57,20],p4:[18,73],p5:[47,73],p6:[82,73]},
+  2: {p1:[61,23],p2:[82,73],p3:[89,29],p4:[49,17],p5:[18,73],p6:[49,76]},
+  3: {p1:[17,28],p2:[27,76],p3:[54,76],p4:[85,76],p5:[49,24],p6:[16,15]},
+  4: {p1:[23,14],p2:[23,76],p3:[53,76],p4:[86,76],p5:[73,39],p6:[27,34]},
+  5: {p1:[62,21],p2:[20,33],p3:[20,77],p4:[52,77],p5:[84,77],p6:[87,35]},
+  6: {p1:[73,19],p2:[49,36],p3:[20,35],p4:[22,77],p5:[53,77],p6:[83,77]}
+};
 
 function getServeReceiveCoords(entry, activeCourt = [], rotationNumber = 1) {
-  const role = getFormationRole(entry);
-  if (role === "S") return { x: 68, y: isFrontRow(entry.zone) ? 16 : 24 };
-  if (isFrontRow(entry.zone)) {
-    if (role === "MB") return { x: 50, y: 13 };
-    if (role === "RS") return { x: 85, y: 16 };
-    return { x: 20, y: 16 };
-  }
-  // The other back-row players fill available lanes.  This includes a
-  // back-row RS, who defends and passes rather than setting.
-  const passers = activeCourt.filter(p => !isFrontRow(p.zone) && getFormationRole(p) !== "S")
-    .sort((a, b) => a.zone - b.zone);
-  const idx = passers.findIndex(p => p.index === entry.index);
-  const lanes = passers.length === 3 ? [18, 50, 82] : passers.length === 2 ? [27, 73] : [50];
-  return { x: lanes[Math.max(0, idx)] || 50, y: 77 };
+  const coord = RECEIVE_BY_ROTATION[rotationNumber]?.[entry.starter.id];
+  if (coord) return {x:coord[0],y:coord[1]};
+  // Fallback if an administrator changes the starter identifiers.
+  return ROTATION_COORDS[entry.zone];
 }
 
 function getSetterReleaseCoords(entry) {
-  const role = getFormationRole(entry);
-  const { zone } = entry;
-  if (role === "S") return { x: 66, y: 13 };
-  if (role === "OH" && isFrontRow(zone)) return { x: 16, y: 35 };
-  if (role === "MB" && isFrontRow(zone)) return { x: 50, y: 35 };
-  if (role === "RS" && isFrontRow(zone)) return { x: 82, y: 35 };
-  if (role === "OH") return { x: zone === 6 ? 53 : 30, y: zone === 6 ? 78 : 64 };
-  return { x: 70, y: 66 };
-}
-
-function getBaseCoords(entry) {
-  const role = getFormationRole(entry);
-  const { zone } = entry;
-
-  // Row 1 reference format: all three front-row attackers are tight to the net.
+  const role = getFormationRole(entry), {zone} = entry;
+  if (role === "S") return {x:74,y:14};
   if (isFrontRow(zone)) {
-    if (role === "S") return { x: 66, y: 14 };
-    if (role === "OH") return { x: 8, y: 7 };
-    if (role === "MB") return { x: 50, y: 7 };
-    if (role === "RS") return { x: 86, y: 7 };
+    if (role === "OH") return {x:16,y:37};
+    if (role === "MB") return {x:50,y:37};
+    if (role === "RS") return {x:84,y:37};
   }
-
-  // Back-row base: left-side defender and setter sit on the 10-ft-line intersections.
-  if (role === "S") return { x: 93, y: 43 };
-  if (role === "OH") return { x: zone === 6 ? 50 : 5, y: zone === 6 ? 79 : 43 };
-  return { x: 50, y: 79 };
+  if (role === "RS") return {x:84,y:76};
+  if (role === "OH") return {x:zone === 6 ? 49 : 22,y:zone === 6 ? 80 : 67};
+  return {x:49,y:83};
 }
 
-// These modes show TEAM DEFENSE against an opponent attack.
-// "OH" = opponent outside hitter (attack comes to our right side).
-// "RS" = opponent right-side hitter (attack comes to our left side).
+// On defense the front-row setter replaces the opposite at right front.
+// On offense that SAME setter goes back to the setting target.
+function getBaseCoords(entry) {
+  const role = getFormationRole(entry), {zone} = entry;
+  if (isFrontRow(zone)) {
+    if (role === "S" || role === "RS") return {x:86,y:9};
+    if (role === "OH") return {x:13,y:9};
+    if (role === "MB") return {x:50,y:9};
+  }
+  if (role === "RS") return {x:87,y:76}; // Back-right, never sets.
+  if (role === "S") return {x:87,y:51}; // Back-right base before releasing to set.
+  if (role === "OH") return {x:16,y:62};
+  return {x:49,y:87};
+}
+
+// These are defensive alignments AGAINST the opponent's selected hitter.
 function getDefenseCoords(entry, attackRole) {
-  const role = getFormationRole(entry);
-  const { zone } = entry;
-
+  const role = getFormationRole(entry), {zone} = entry;
+  const front = isFrontRow(zone);
+  const rightBlock = front && (role === "S" || role === "RS");
+  const leftBlock = front && role === "OH";
+  const middleBlock = front && role === "MB";
   if (attackRole === "OH") {
-    if (isFrontRow(zone) && role === "RS") return { x: 86, y: 7 };
-    if (isFrontRow(zone) && role === "MB") return { x: 70, y: 7 };
-    if (isFrontRow(zone) && role === "OH") return { x: 20, y: 31 };
-    if (role === "S") return { x: 94, y: 58 };
-    if (role === "OH") return { x: 29, y: 53 };
-    return { x: 34, y: 84 };
+    if (rightBlock) return {x:86,y:7};
+    if (middleBlock) return {x:69,y:7};
+    if (leftBlock) return {x:19,y:32};
+    if (role === "RS") return {x:89,y:64};
+    if (role === "S") return {x:90,y:58};
+    if (role === "OH") return {x:29,y:53};
+    return {x:38,y:84};
   }
-
   if (attackRole === "MB") {
-    if (isFrontRow(zone) && role === "MB") return { x: 50, y: 7 };
-    if (isFrontRow(zone) && role === "OH") return { x: 19, y: 23 };
-    if (isFrontRow(zone) && role === "RS") return { x: 68, y: 24 };
-    if (role === "S") return { x: 94, y: 56 };
-    if (role === "OH") return { x: 4, y: 56 };
-    return { x: 50, y: 95 };
+    if (middleBlock) return {x:50,y:7};
+    if (leftBlock) return {x:19,y:24};
+    if (rightBlock) return {x:79,y:24};
+    if (role === "RS" || role === "S") return {x:89,y:65};
+    if (role === "OH") return {x:12,y:61};
+    return {x:50,y:91};
   }
-
   if (attackRole === "RS") {
-    if (isFrontRow(zone) && role === "OH") return { x: 8, y: 7 };
-    if (isFrontRow(zone) && role === "MB") return { x: 20, y: 7 };
-    if (isFrontRow(zone) && role === "RS") return { x: 66, y: 24 };
-    if (role === "S") return { x: 76, y: 54 };
-    if (role === "OH") return { x: 4, y: 56 };
-    return { x: 70, y: 84 };
+    if (leftBlock) return {x:11,y:7};
+    if (middleBlock) return {x:28,y:7};
+    if (rightBlock) return {x:77,y:26};
+    if (role === "RS" || role === "S") return {x:85,y:63};
+    if (role === "OH") return {x:12,y:62};
+    return {x:66,y:85};
   }
-
   return getBaseCoords(entry);
 }
 
 function getFreeballCoords(entry) {
-  const role = getFormationRole(entry);
-  const { zone } = entry;
-
-  if (role === "S") return { x: 66, y: 14 };
-  if (isFrontRow(zone) && role === "OH") return { x: 16, y: 43 };
-  if (isFrontRow(zone) && role === "MB") return { x: 50, y: 43 };
-  if (isFrontRow(zone) && role === "RS") return { x: 82, y: 43 };
-  if (role === "OH") return { x: zone === 6 ? 53 : 30, y: zone === 6 ? 78 : 63 };
-  return { x: 70, y: 65 };
+  const role = getFormationRole(entry), {zone} = entry;
+  if (role === "S") return {x:74,y:14};
+  if (isFrontRow(zone) && role === "OH") return {x:16,y:42};
+  if (isFrontRow(zone) && role === "MB") return {x:50,y:40};
+  if (isFrontRow(zone) && role === "RS") return {x:84,y:42};
+  if (role === "RS") return {x:84,y:77};
+  if (role === "OH") return {x:18,y:69};
+  return {x:51,y:80};
 }
 
 function getPositionLabel(role) {
