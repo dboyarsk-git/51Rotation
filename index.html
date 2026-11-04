@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07192f" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>5–2 Volleyball Rotation Guide</title>
+  <link rel="stylesheet" href="styles-v15.css?v=52-1" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Interactive Coaching Board</p>
+      <h1 id="teamTitle">5–2 Volleyball Rotation Guide</h1>
+      <p class="subtitle">Pick a rotation, choose the situation, then tap a player to learn exactly where she goes.</p>
+    </div>
+    <div class="header-actions">
+      <span class="build-badge" title="Current website build">BUILD 5–2 v1</span>
+      <div id="syncBadge" class="sync-badge sync-pending" title="Shared roster sync status">
+        <span class="sync-dot"></span><span id="syncText">Connecting…</span>
+      </div>
+      <a class="admin-link" href="admin.html">⚙ Coach Admin</a>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="control-panel card">
+      <div class="control-row">
+        <div>
+          <span class="control-label">Rotation</span>
+          <div class="segmented" id="rotationButtons" aria-label="Rotation selector"></div>
+        </div>
+        <div>
+          <label class="control-label" for="playerFocus">Show me my job</label>
+          <select id="playerFocus"></select>
+        </div>
+      </div>
+
+      <div class="phase-group">
+        <span class="control-label">Rally Phase</span>
+        <div class="segmented wide scrollable" id="modeButtons">
+          <button data-mode="serve" class="active">Serve</button>
+          <button data-mode="receive">Serve Receive</button>
+          <button data-mode="base">Base</button>
+          <button data-mode="attack_oh">Outside Hit</button>
+          <button data-mode="attack_mb">Middle Hit</button>
+          <button data-mode="attack_rs">Right Side Hit</button>
+          <button data-mode="freeball">Free Ball</button>
+        </div>
+      </div>
+
+      <div class="flow-actions">
+        <button id="receiveFlowBtn" class="primary-btn">▶ Show Serve Receive → Base</button>
+        <button id="serveFlowBtn" class="secondary-btn">▶ Show Serve → Base</button>
+      </div>
+    </section>
+
+    <section class="court-layout">
+      <div class="court-card card">
+        <div class="court-topline">
+          <div>
+            <p class="eyebrow">Rotation <span id="rotationLabel">1</span></p>
+            <h2 id="modeTitle">Serve</h2>
+          </div>
+          <span class="legend-pill" id="modeHint">Stack legally so everyone can release straight to base.</span>
+        </div>
+
+        <div class="court-wrap" id="courtWrap">
+          <div class="opponent-label">OPPONENT</div>
+          <div class="net-line"><span>NET</span></div>
+          <div class="court" id="court">
+            <div class="zone-label z4">4</div>
+            <div class="zone-label z3">3</div>
+            <div class="zone-label z2">2</div>
+            <div class="zone-label z5">5</div>
+            <div class="zone-label z6">6</div>
+            <div class="zone-label z1">1</div>
+            <div class="attack-line"></div>
+            <div id="setTarget" class="set-target" hidden>PASS / SET TARGET</div>
+            <div class="player-layer" id="playerLayer"></div>
+          </div>
+          <div class="service-zone-label">SERVICE ZONE</div>
+        </div>
+
+        <div class="selected-player" id="selectedPlayerCard">
+          <strong>Tap a player circle</strong>
+          <span>to see her job in this situation.</span>
+        </div>
+      </div>
+
+      <aside class="lesson-card card">
+        <p class="eyebrow">What are we learning?</p>
+        <h2 id="lessonHeading">Serve</h2>
+        <p id="lessonText"></p>
+        <div class="mini-steps" id="lessonSteps"></div>
+      </aside>
+    </section>
+
+    <section class="roles-section card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Position Lessons</p>
+          <h2>What is my job?</h2>
+        </div>
+        <p>Highlight one position at a time.</p>
+      </div>
+
+      <div class="role-tabs" id="roleTabs">
+        <button data-role="S">Setter</button>
+        <button data-role="RS">Right Side</button>
+        <button data-role="OH">Outside</button>
+        <button data-role="MB">Middle</button>
+        <button data-role="DS">DS</button>
+        <button data-role="LIB">Libero</button>
+        <button data-role="ALL" class="active">Show Everyone</button>
+      </div>
+
+      <div class="role-explanation" id="roleExplanation"></div>
+    </section>
+
+    <section class="why-card card">
+      <details>
+        <summary>What changes after the serve?</summary>
+        <p>Players begin in their legal rotational relationship. After contact, the front row releases to left / middle / right, the all-around setter moves into setting or defensive responsibility, and the defense shifts based on which opponent hitter attacks.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <span>5–2 Rotation Teaching Tool • 5–2 v1</span>
+    <a href="admin.html">Coach Admin</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config-v15.js?v=52-1"></script>
+  <script src="data-v15.js?v=52-1"></script>
+  <script src="app-v15.js?v=52-1"></script>
+</body>
+</html>

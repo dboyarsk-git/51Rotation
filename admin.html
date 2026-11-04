@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07192f" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Coach Admin — 5–2 Rotation Guide</title>
+  <link rel="stylesheet" href="styles-v15.css?v=52-1" />
+</head>
+<body class="admin-page">
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">Coach Controls</p>
+      <h1>5–2 Rotation Admin</h1>
+      <p class="subtitle">Edit names, positions, DS substitutions, and the libero replacement for every rotation.</p>
+    </div>
+    <div class="header-actions">
+      <span class="build-badge" title="Current website build">BUILD 5–2 v1</span>
+      <div id="syncBadge" class="sync-badge sync-pending" title="Shared roster sync status">
+        <span class="sync-dot"></span><span id="syncText">Connecting…</span>
+      </div>
+      <a class="admin-link" href="index.html">← Player View</a>
+    </div>
+  </header>
+
+  <main class="page-shell narrow">
+    <section id="pinGate" class="card pin-card">
+      <p class="eyebrow">Admin Mode</p>
+      <h2>Enter Coach PIN</h2>
+      <p>When Supabase is connected, this PIN is verified by the shared database before any team changes can be saved.</p>
+      <form id="pinForm" class="pin-form">
+        <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Coach PIN" />
+        <button class="primary-btn" type="submit">Open Admin</button>
+      </form>
+      <p id="pinError" class="error-text" aria-live="polite"></p>
+    </section>
+
+    <div id="adminPanel" hidden>
+      <section class="card admin-settings">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Team Settings</p>
+            <h2>Display</h2>
+          </div>
+        </div>
+        <label>
+          Team / Page Name
+          <input id="teamNameInput" type="text" />
+        </label>
+      </section>
+
+      <section class="card roster-editor">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Starting Lineup</p>
+            <h2>Edit Starting Six</h2>
+          </div>
+          <span class="legend-pill">The lineup slot rotates; the name can change anytime.</span>
+        </div>
+        <div class="roster-grid" id="rosterGrid"></div>
+      </section>
+
+      <section class="card libero-editor">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Libero</p>
+            <h2>Choose Her Replacement by Rotation</h2>
+          </div>
+          <span class="legend-pill">Separate navy LIB bubble</span>
+        </div>
+        <p class="admin-helper">Give the libero a name, then choose who comes OUT in each rotation. Only back-row starters are offered. Choose “Off Court” when the libero is not in that rotation.</p>
+        <label class="libero-name-label">
+          Libero Name
+          <input id="liberoNameInput" type="text" maxlength="24" />
+        </label>
+        <div class="libero-rotation-grid" id="liberoRotationGrid"></div>
+      </section>
+
+      <section class="card subs-editor">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Other Automatic Substitutions</p>
+            <h2>DS / Regular Subs</h2>
+          </div>
+          <button id="addSubBtn" class="secondary-btn">+ Add Substitute</button>
+        </div>
+        <p class="admin-helper">Use this for DS or other automatic substitutions. The separate libero section above controls the libero rotation-by-rotation.</p>
+        <div class="subs-grid" id="subsGrid"></div>
+      </section>
+
+      <section class="card admin-actions-card">
+        <div class="admin-actions">
+          <button id="saveBtn" class="primary-btn">Save Changes</button>
+          <button id="previewBtn" class="secondary-btn">Preview Player View</button>
+          <button id="resetBtn" class="danger-btn">Reset Demo Lineup</button>
+        </div>
+        <p id="saveStatus" class="save-status" aria-live="polite"></p>
+      </section>
+
+      <section class="card admin-note">
+        <h3>Supabase LIVE cloud sync • 5–2 v1</h3>
+        <p>With <code>supabase-config.js</code> connected, Save Changes updates one shared team configuration in Supabase. The player page checks for updates automatically, so names, positions, DS rules, and libero assignments stay matched across phones and computers.</p>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config-v15.js?v=52-1"></script>
+  <script src="data-v15.js?v=52-1"></script>
+  <script src="admin-v15.js?v=52-1"></script>
+</body>
+</html>
