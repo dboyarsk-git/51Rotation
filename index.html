@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>5-1 Rotation</title>
-  <link rel="stylesheet" href="styles-v15.css?v=51-2" />
+  <link rel="stylesheet" href="styles-v15.css?v=51-3" />
 </head>
 <body>
   <header class="site-header">
@@ -18,7 +18,7 @@
       <p class="subtitle">Pick a rotation, choose the situation, then tap a player to learn exactly where she goes.</p>
     </div>
     <div class="header-actions">
-      <span class="build-badge" title="Current website build">BUILD 5-1 v2</span>
+      <span class="build-badge" title="Current website build">BUILD 5-1 v3</span>
       <div id="syncBadge" class="sync-badge sync-pending" title="Shared roster sync status">
         <span class="sync-dot"></span><span id="syncText">Connecting…</span>
       </div>
@@ -31,7 +31,11 @@
       <div class="control-row">
         <div>
           <span class="control-label">Rotation</span>
-          <div class="segmented" id="rotationButtons" aria-label="Rotation selector"></div>
+          <div class="rotation-nav"><button id="previousRotationBtn" class="rotation-arrow" aria-label="Previous rotation">‹</button><div class="segmented" id="rotationButtons" aria-label="Rotation selector"></div><button id="nextRotationBtn" class="rotation-arrow" aria-label="Next rotation">›</button></div>
+        </div>
+        <div>
+          <label class="control-label" for="setSelector">Set</label>
+          <select id="setSelector" aria-label="Select set"><option value="1">Set 1</option><option value="2">Set 2</option><option value="3">Set 3</option><option value="4">Set 4</option><option value="5">Set 5</option><option value="6">Set 6</option><option value="7">Set 7</option><option value="8">Set 8</option></select>
         </div>
         <div>
           <label class="control-label" for="playerFocus">Show me my job</label>
@@ -57,6 +61,8 @@
         <button id="serveFlowBtn" class="secondary-btn">▶ Show Serve → Base</button>
       </div>
     </section>
+
+    <section id="lineupPanel" class="lineup-panel card" aria-label="Current starters and bench"></section>
 
     <section class="court-layout">
       <div class="court-card card">
@@ -130,13 +136,13 @@
   </main>
 
   <footer>
-    <span>5-1 Rotation • v2</span>
+    <span>5-1 Rotation · MS San Francisco • v3</span>
     <a href="admin.html">Coach Admin</a>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config-v15.js?v=51-2"></script>
-  <script src="data-v15.js?v=51-2"></script>
-  <script src="app-v15.js?v=51-2"></script>
+  <script src="supabase-config-v15.js?v=51-3"></script>
+  <script src="data-v15.js?v=51-3"></script>
+  <script src="app-v15.js?v=51-3"></script>
 </body>
 </html>

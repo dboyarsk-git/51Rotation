@@ -184,6 +184,7 @@ function renderSubs() {
             <option value="back" ${sub.trigger === "back" ? "selected" : ""}>Back Row</option>
             <option value="front" ${sub.trigger === "front" ? "selected" : ""}>Front Row</option>
             <option value="always" ${sub.trigger === "always" ? "selected" : ""}>Always On Court</option>
+            <option value="even_set" ${sub.trigger === "even_set" ? "selected" : ""}>Even Sets Only (2, 4, 6…)</option>
           </select>
         </label>
       </div>
@@ -360,7 +361,7 @@ previewBtn.addEventListener("click", async () => {
 });
 
 resetBtn.addEventListener("click", async () => {
-  const confirmed = window.confirm("Reset all names, positions, substitutions, and libero assignments to the demo lineup?");
+  const confirmed = window.confirm("Reset names, positions, substitutions, and libero assignments to the finalized MS San Francisco lineup?");
   if (!confirmed) return;
 
   const resetConfig = cloneDefaultConfig();
@@ -379,7 +380,7 @@ resetBtn.addEventListener("click", async () => {
   }
 
   renderEditor();
-  showStatus(isSupabaseConfigured() ? "Demo lineup restored in Supabase." : "Demo lineup restored on this browser.");
+  showStatus(isSupabaseConfigured() ? "MS San Francisco lineup restored in Supabase." : "MS San Francisco lineup restored on this browser.");
 });
 
 if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "true") {

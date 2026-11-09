@@ -1,24 +1,26 @@
-const STORAGE_KEY = "volleyball51Config_v2";
-const LEGACY_STORAGE_KEY = "volleyball51LegacyDisabled_v2";
+const STORAGE_KEY = "volleyball51Config_v3";
+const LEGACY_STORAGE_KEY = "volleyball51Config_v2";
 const ADMIN_SESSION_KEY = "volleyball51AdminUnlocked";
 const ADMIN_PIN_SESSION_KEY = "volleyball51AdminCloudPin";
 
 const DEFAULT_CONFIG = {
   teamName: "5-1 Rotation",
   adminPin: "5151",
+  rosterVersion: "ms-sf-2026-v3",
   players: [
-    { id: "p1", name: "Setter", role: "S" },
-    { id: "p2", name: "Outside 1", role: "OH" },
-    { id: "p3", name: "Middle 1", role: "MB" },
-    { id: "p4", name: "Right Side", role: "RS" },
-    { id: "p5", name: "Outside 2", role: "OH" },
-    { id: "p6", name: "Middle 2", role: "MB" }
+    { id: "p1", name: "Anastasiia Krasivska", role: "S" },
+    { id: "p2", name: "Emme Sanchez", role: "MB" },
+    { id: "p3", name: "Ava Byers", role: "RS" },
+    { id: "p4", name: "Avery Hornbeck", role: "OH" },
+    { id: "p5", name: "Julia Ash", role: "MB" },
+    { id: "p6", name: "Aadhya Sopalli", role: "OH" }
   ],
-  subs: [],
+  subs: [
+    { id: "sub_addison", name: "Addison Farley", role: "MB", linkedPlayerId: "p5", trigger: "even_set" },
+    { id: "sub_talia", name: "Talia Al Yaghan", role: "DS", linkedPlayerId: "p3", trigger: "back" }
+  ],
   libero: {
-    id: "libero_1",
-    name: "Libero",
-    role: "LIB",
+    id: "libero_1", name: "Libero", role: "LIB",
     rotations: { "1": "", "2": "", "3": "", "4": "", "5": "", "6": "" }
   }
 };
@@ -44,7 +46,7 @@ function normalizeConfig(raw) {
         name: sub.name || `Sub ${index + 1}`,
         role: sub.role || "DS",
         linkedPlayerId: sub.linkedPlayerId || players[0].id,
-        trigger: ["front", "back", "always"].includes(sub.trigger) ? sub.trigger : "back"
+        trigger: ["front", "back", "always", "even_set"].includes(sub.trigger) ? sub.trigger : "back"
       }))
     : [];
 
@@ -77,6 +79,17 @@ function loadConfig() {
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
     if (legacy) {
       const migrated = normalizeConfig(JSON.parse(legacy));
+      // An existing customized roster is retained locally. Demo defaults from v2
+      // become this team's finalized lineup automatically.
+      const previous = JSON.parse(legacy);
+      if (previous.players?.[0]?.name === "Setter" && previous.players?.[1]?.name === "Outside 1") {
+        const updated = cloneDefaultConfig();
+        updated.adminPin = previous.adminPin || updated.adminPin;
+        updated.libero = previous.libero || updated.libero;
+        updated.teamName = "5-1 Rotation";
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
     }
@@ -227,25 +240,22 @@ const ROTATION_COORDS = {
   6: { x: 50, y: 78 }
 };
 
-function getRotationMap(rotationNumber) {
-  let mapping = [0, 1, 2, 3, 4, 5];
-  const turns = Math.max(0, rotationNumber - 1);
-  for (let i = 0; i < turns; i += 1) {
-    mapping = [mapping[1], mapping[2], mapping[3], mapping[4], mapping[5], mapping[0]];
-  }
-  return mapping;
-}
-
+// Official MS San Francisco lineup, Rotation 1. Clockwise next turn:
+// Zone 4 -> 3 -> 2 -> 1 -> 6 -> 5 -> 4.
+const FIRST_ROTATION_ZONES = [4, 3, 2, 5, 6, 1];
+const NEXT_ROTATION_ZONE = { 4: 3, 3: 2, 2: 1, 1: 6, 6: 5, 5: 4 };
 function getZoneForPlayer(playerIndex, rotationNumber) {
-  const map = getRotationMap(rotationNumber);
-  return map.indexOf(playerIndex) + 1;
+  let zone = FIRST_ROTATION_ZONES[playerIndex];
+  for (let i = 1; i < rotationNumber; i += 1) zone = NEXT_ROTATION_ZONE[zone];
+  return zone;
 }
 
 function isFrontRow(zone) {
   return zone === 2 || zone === 3 || zone === 4;
 }
 
-function rowMatchesTrigger(zone, trigger) {
+function rowMatchesTrigger(zone, trigger, setNumber = 1) {
+  if (trigger === "even_set") return setNumber % 2 === 0;
   if (trigger === "always") return true;
   if (trigger === "front") return isFrontRow(zone);
   return !isFrontRow(zone);
@@ -257,16 +267,16 @@ function getSystemRole(player, zone) {
   return player.role;
 }
 
-function getActiveCourt(config, rotationNumber) {
+function getActiveCourt(config, rotationNumber, setNumber = 1) {
   const liberoTarget = config.libero?.rotations?.[String(rotationNumber)] || "";
 
   return config.players.map((starter, index) => {
     const zone = getZoneForPlayer(index, rotationNumber);
-    const linkedSub = (config.subs || []).find(
-      (sub) => sub.linkedPlayerId === starter.id && rowMatchesTrigger(zone, sub.trigger)
+    const linkedSub = starter.role !== "S" && (config.subs || []).find(
+      (sub) => sub.linkedPlayerId === starter.id && rowMatchesTrigger(zone, sub.trigger, setNumber)
     );
 
-    const liberoCanEnter = liberoTarget === starter.id && !isFrontRow(zone);
+    const liberoCanEnter = liberoTarget === starter.id && !isFrontRow(zone) && !linkedSub && starter.role !== "S";
     const player = liberoCanEnter ? config.libero : (linkedSub || starter);
 
     return {
@@ -319,9 +329,14 @@ const RECEIVE_BY_ROTATION = {
 };
 
 function getServeReceiveCoords(entry, activeCourt = [], rotationNumber = 1) {
-  const coord = RECEIVE_BY_ROTATION[rotationNumber]?.[entry.starter.id];
-  if (coord) return {x:coord[0],y:coord[1]};
-  // Fallback if an administrator changes the starter identifiers.
+  // Keep the v2 5-1 reference diagram's six shapes after re-ordering starters.
+  // v2 was indexed by the setter beginning Zone 1; here setter begins Zone 4.
+  // The original diagram is re-keyed by the *zone at Rotation 1*.
+  const diagramRotation = ((rotationNumber + 2) % 6) + 1;
+  const oldSlotByNewSlot = [1, 6, 5, 2, 3, 4];
+  const originalSlot = oldSlotByNewSlot[entry.index];
+  const coord = RECEIVE_BY_ROTATION[diagramRotation]?.[`p${originalSlot}`];
+  if (coord) return { x: coord[0], y: coord[1] };
   return ROTATION_COORDS[entry.zone];
 }
 
@@ -343,8 +358,11 @@ function getSetterReleaseCoords(entry) {
 function getBaseCoords(entry) {
   const role = getFormationRole(entry), {zone} = entry;
   if (isFrontRow(zone)) {
-    if (role === "S" || role === "RS") return {x:86,y:9};
-    if (role === "OH") return {x:13,y:9};
+    if (role === "S") return {x:86,y:9};
+    // Rotation 1 has both a front-row setter and an RS. The setter takes the
+    // right blocking pin, while Ava covers the open left pin in this diagram.
+    if (role === "RS") return {x: zone === 2 ? 13 : 86,y:9};
+    if (role === "OH") return {x: zone === 2 ? 86 : 13,y:9};
     if (role === "MB") return {x:50,y:9};
   }
   if (role === "RS") return {x:87,y:76}; // Back-right, never sets.

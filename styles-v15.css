@@ -612,3 +612,21 @@ body {
   letter-spacing: 0.12em;
   white-space: nowrap;
 }
+
+/* 5-1 v3 roster and set selector, preserving all existing colors and court styles */
+.rotation-nav {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rotation-arrow {background:#142b48;color:#fff;border:1px solid #df8832;border-radius:10px;padding:7px 15px;font-size:24px;cursor:pointer}
+.rotation-arrow:hover {background:#e98b35;color:#07192f}
+#setSelector {min-width:110px}
+.lineup-panel {padding:18px 22px;margin-bottom:16px}
+.lineup-header {display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.lineup-header span {opacity:.72;font-size:.85rem}
+.lineup-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lineup-item {border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.lineup-item b {color:#f3a254;font-size:.8rem}
+.lineup-item span {overflow-wrap:anywhere}
+.lineup-item small {font-size:.7rem;opacity:.8}
+.bench-strip {margin-top:13px;padding:10px 12px;background:rgba(240,139,45,.08);border-radius:9px}
+.bench-strip b {color:#f3a254;margin-right:10px}
+.substitution-notice {font-size:.75rem;opacity:.78;line-height:1.45;margin:10px 0 0}
+@media(max-width:650px) {.lineup-grid {grid-template-columns:repeat(2,minmax(0,1fr))}}

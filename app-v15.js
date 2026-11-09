@@ -1,11 +1,16 @@
 let config = loadConfig();
 let currentRotation = 1;
+let currentSet = Math.max(1, Number(localStorage.getItem("volleyball51SelectedSet_v3")) || 1);
 let currentMode = "serve";
 let selectedPlayerId = null;
 let roleFilter = "ALL";
 let animationTimers = [];
 
 const rotationButtons = document.getElementById("rotationButtons");
+const setSelector = document.getElementById("setSelector");
+const previousRotationBtn = document.getElementById("previousRotationBtn");
+const nextRotationBtn = document.getElementById("nextRotationBtn");
+const lineupPanel = document.getElementById("lineupPanel");
 const modeButtons = document.getElementById("modeButtons");
 const playerLayer = document.getElementById("playerLayer");
 const playerFocus = document.getElementById("playerFocus");
@@ -52,7 +57,7 @@ const MODE_COPY = {
     title: "Base",
     hint: "Front row on the net; back row in defensive base.",
     heading: "Defensive Base",
-    text: "In Rotations 4–6, the front-row setter blocks at RIGHT FRONT in base, then moves back to the setting target when offense begins. In Rotations 1–3, the front-row RS blocks right. A back-row RS stays back-right.",
+    text: "Anastasiia is front row in Rotations 1–3 and blocks right front in Base, then returns to set. In Rotations 4–6 she sets from the back row. Talia replaces Ava only when Ava is back row (Rotations 2–4).",
     steps: ["Setter blocks right when front", "RS defends back right when back", "Middle closes block", "Release to attack"]
   },
   attack_oh: {
@@ -92,7 +97,7 @@ const ROLE_COPY = {
   },
   RS: {
     title: "Right Side / Back-Right Defender",
-    body: "The Right Side attacks and blocks while front row. When she rotates to the back row, she stays back-right on defense and never sets. In serve receive, she is tucked out of the primary passing lanes."
+    body: "Ava attacks when she is front row (Rotations 1, 5 and 6). Talia is the regular DS in Ava’s back-row rotations (2–4). In serve receive, she is tucked out of the primary passing lanes."
   },
   OH: {
     title: "Outside Hitter",
@@ -130,6 +135,7 @@ function roleMatchesFilter(entry) {
 
 function buildControls() {
   rotationButtons.innerHTML = "";
+  if (setSelector) setSelector.value = String(currentSet);
   for (let i = 1; i <= 6; i += 1) {
     const button = document.createElement("button");
     button.textContent = i;
@@ -195,7 +201,7 @@ function getActivePlayerInstruction(entry) {
 
   if (currentMode === "receive") {
     if (role === "S") return `${base} Stay clear of the passing lane. Once the pass is controlled, release to the target between the middle and right side.`;
-    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are BACK RIGHT this rotation. Stay tucked behind the passers, do not take a primary passing lane, and do not set.`;
+    if (starter.role === "RS" && !isFrontRow(zone)) return `${base} Talia is in Ava’s back-row slot this rotation. Play defense and serve receive as assigned; you do not set.`;
     if (role === "OH") return `${base} Join the serve-receive shape, call seams, and pass toward the target.`;
     if (role === "MB" && isFrontRow(zone)) return `${base} Hold the corrected front-row overlap, then transition as soon as the pass is made.`;
     if (role === "RS" && isFrontRow(zone)) return `${base} Hold the corrected serve-receive relationship and transition after the pass.`;
@@ -212,8 +218,9 @@ function getActivePlayerInstruction(entry) {
     if (starter.role === "RS" && !isFrontRow(zone)) return `${base} You are a BACK-ROW DEFENDER in the back-right area; do not set.`;
     if (isFrontRow(zone) && role === "OH") return `${base} Start on the LEFT pin at the net and read the opponent.`;
     if (isFrontRow(zone) && role === "MB") return `${base} Start CENTERED on the net and read the opponent setter.`;
-    if (isFrontRow(zone) && (role === "RS" || role === "S")) return `${base} Block at the RIGHT pin in base, then transition back to the setting target to set.`;
-    if (role === "S") return `${base} When front row, BLOCK at RIGHT FRONT in base, then return to the setting target on offense; when back row, defend from right back.`;
+    if (isFrontRow(zone) && role === "S") return `${base} Block at the RIGHT pin in base, then transition back to the setting target to set.`;
+    if (isFrontRow(zone) && role === "RS") return `${base} Cover your assigned front-row block and hit in transition.`;
+    if (role === "S") return `${base} When front row (1–3), BLOCK RIGHT FRONT and return to setting; when back row (4–6), set from behind the attack line.`;
     if (role === "OH") return `${base} Start at the LEFT sideline / 10-ft-line base.`;
     return `${base} Start deep middle and read the hitter.`;
   }
@@ -255,7 +262,7 @@ function getActivePlayerInstruction(entry) {
 
 function renderPlayers() {
   const focusId = playerFocus.value;
-  const activeCourt = getActiveCourt(config, currentRotation);
+  const activeCourt = getActiveCourt(config, currentRotation, currentSet);
   playerLayer.innerHTML = "";
 
   activeCourt.forEach((entry) => {
@@ -305,7 +312,7 @@ function renderSelectedPlayer() {
     return;
   }
 
-  const activeCourt = getActiveCourt(config, currentRotation);
+  const activeCourt = getActiveCourt(config, currentRotation, currentSet);
   const activeEntry = activeCourt.find((entry) => entry.player.id === focusId || entry.starter.id === focusId);
   const starter = config.players.find((player) => player.id === focusId);
   const sub = (config.subs || []).find((player) => player.id === focusId);
@@ -358,6 +365,17 @@ function renderRoleCopy() {
   });
 }
 
+function renderLineupSummary() {
+  if (!lineupPanel) return;
+  const court = getActiveCourt(config, currentRotation, currentSet);
+  const ordered = [4,3,2,5,6,1].map(z => court.find(p => p.zone === z));
+  const onCourtIds = new Set(court.map(entry => entry.player.id));
+  const candidates = [...config.players, ...(config.subs || [])];
+  const bench = candidates.filter(player => !onCourtIds.has(player.id));
+  const labels = ordered.map(e => `<div class="lineup-item"><b>Z${e.zone} · ${isFrontRow(e.zone) ? "Front" : "Back"}</b><span>${escapeHtml(e.player.name)}${e.starter.id !== e.player.id ? ` <small>(for ${escapeHtml(e.starter.name)})</small>` : ""}${e.starter.role === "S" ? ' <small>SETTER</small>' : ""}</span></div>`).join("");
+  lineupPanel.innerHTML = `<div class="lineup-header"><strong>Set ${currentSet} · Rotation ${currentRotation}</strong><span>6 on court · ${bench.length} on bench</span></div><div class="lineup-grid">${labels}</div><div class="bench-strip"><b>BENCH</b> ${bench.map(p => escapeHtml(p.name)).join(" · ")}</div><p class="substitution-notice">Talia ↔ Ava is a regular substitution: enter/return only at a legal dead ball and record each exchange on your score sheet. The view shows the planned lineup, not a completed referee-authorized substitution.</p>`;
+}
+
 function render() {
   config = loadConfig();
   teamTitle.textContent = config.teamName || "5-1 Rotation";
@@ -368,6 +386,7 @@ function render() {
   renderRoleCopy();
   renderPlayers();
   renderSelectedPlayer();
+  renderLineupSummary();
   [...modeButtons.querySelectorAll("button")].forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === currentMode);
   });
@@ -382,7 +401,7 @@ function stopAnimations() {
 
 function applyModeToExistingPlayers(mode) {
   currentMode = mode;
-  const activeCourt = getActiveCourt(config, currentRotation);
+  const activeCourt = getActiveCourt(config, currentRotation, currentSet);
   activeCourt.forEach((entry) => {
     const circle = playerLayer.querySelector(`[data-slot-index="${entry.index}"]`);
     if (!circle) return;
@@ -457,6 +476,25 @@ playerFocus.addEventListener("change", () => {
 
 receiveFlowBtn.addEventListener("click", runReceiveFlowAnimation);
 serveFlowBtn.addEventListener("click", runServeBaseAnimation);
+
+
+if (setSelector) {
+  setSelector.addEventListener("change", () => {
+    currentSet = Math.max(1, Number(setSelector.value) || 1);
+    localStorage.setItem("volleyball51SelectedSet_v3", String(currentSet));
+    stopAnimations();
+    selectedPlayerId = null;
+    render();
+  });
+}
+if (previousRotationBtn) previousRotationBtn.addEventListener("click", () => {
+  currentRotation = ((currentRotation + 4) % 6) + 1;
+  stopAnimations(); render();
+});
+if (nextRotationBtn) nextRotationBtn.addEventListener("click", () => {
+  currentRotation = (currentRotation % 6) + 1;
+  stopAnimations(); render();
+});
 
 render();
 
