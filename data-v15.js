@@ -32,6 +32,29 @@ function cloneDefaultConfig() {
 function normalizeConfig(raw) {
   const fallback = cloneDefaultConfig();
   const parsed = raw && typeof raw === "object" ? raw : {};
+  // v4: Some existing browsers already have v3, but LIVE sync may still return
+  // the six generic v2 demo players. Upgrade ONLY that known demo roster while
+  // keeping the team's existing PIN and other custom settings intact.
+  const incomingPlayers = parsed.players;
+  const isLegacyDemo = Array.isArray(incomingPlayers) && incomingPlayers.length === 6
+    && incomingPlayers[0]?.name === "Setter"
+    && incomingPlayers[1]?.name === "Outside 1"
+    && incomingPlayers[2]?.name === "Middle 1";
+  if (isLegacyDemo) {
+    return {
+      ...fallback,
+      ...parsed,
+      teamName: "5-1 Rotation",
+      rosterVersion: fallback.rosterVersion,
+      players: fallback.players.map(player => ({ ...player })),
+      subs: fallback.subs.map(sub => ({ ...sub })),
+      libero: {
+        ...fallback.libero,
+        name: parsed.libero?.name || fallback.libero.name,
+        rotations: { ...fallback.libero.rotations }
+      }
+    };
+  }
   const players = Array.isArray(parsed.players) && parsed.players.length === 6
     ? parsed.players.map((player, index) => ({
         id: player.id || `p${index + 1}`,
